@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 const plannedFeatures = [
   "Room-first circuit lookup",
   "Panel position and circuit mapping",
@@ -33,10 +35,18 @@ export default function Home() {
           ))}
         </div>
 
-        <p className="mt-10 max-w-2xl text-sm leading-6 text-slate-400">
-          Advisory only. Always verify a circuit is de-energized before working
-          on electrical wiring. Electricity remains committed to physics.
-        </p>
+        <div className="mt-10 flex flex-wrap items-center gap-4">
+          <Link
+            className="inline-flex h-11 items-center justify-center rounded-full bg-cyan-300 px-5 text-sm font-semibold text-slate-950"
+            href="/wireframes"
+          >
+            View wireframes
+          </Link>
+          <p className="max-w-2xl text-sm leading-6 text-slate-400">
+            Advisory only. Always verify a circuit is de-energized before working
+            on electrical wiring. Electricity remains committed to physics.
+          </p>
+        </div>
       </section>
     </main>
   );

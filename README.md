@@ -78,8 +78,19 @@ pnpm lint
 pnpm build
 ```
 
+## Wireframes
+
+The static mock flow is available at:
+
+```text
+http://localhost:3000/wireframes
+```
+
+It sketches the dashboard, room lookup, point detail, circuit detail, panel view, what-if load planning, verification, and setup flows.
+
 ## Planning docs
 
+- `PRODUCT.md` — design context for product UI work
 - `docs/PLAN.md` — product scope, workflows, and implementation phases
 - `docs/DATA_MODEL.md` — relational model, constraints, and derived summaries
 
