@@ -1,0 +1,2 @@
+-- Seed data for local development.
+-- Intentionally empty until the breaker-box schema is added.
