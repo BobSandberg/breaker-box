@@ -38,9 +38,9 @@ export default function Home() {
         <div className="mt-10 flex flex-wrap items-center gap-4">
           <Link
             className="inline-flex h-11 items-center justify-center rounded-full bg-cyan-300 px-5 text-sm font-semibold text-slate-950"
-            href="/wireframes"
+            href="/rooms"
           >
-            View wireframes
+            Browse rooms
           </Link>
           <p className="max-w-2xl text-sm leading-6 text-slate-400">
             Advisory only. Always verify a circuit is de-energized before working
