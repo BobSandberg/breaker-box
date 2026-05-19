@@ -43,3 +43,16 @@ supabase/.temp
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# local OS/editor files
+.AppleDouble
+.LSOverride
+.Spotlight-V100
+.Trashes
+*.swp
+*.swo
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+.idea/
+supabase/snippets/
