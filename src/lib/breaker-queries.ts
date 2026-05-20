@@ -124,10 +124,104 @@ export function formatVerificationStatus(status: VerificationStatus | null) {
   return labels[status];
 }
 
+export function formatTerminalSide(side: string | null) {
+  if (!side) return "Unassigned";
+  return side[0].toUpperCase() + side.slice(1);
+}
+
 export function verificationTone(status: VerificationStatus | null) {
   if (status === "confirmed") return "ok";
   if (status === "contradicted") return "bad";
   if (status === "partial" || status === "uncertain") return "warn";
   if (status === null) return "bad";
   return "info";
+}
+
+export type CircuitSummary = {
+  circuit_id: string;
+  house_id: string;
+  circuit_label: string;
+  verification_status: VerificationStatus;
+  nominal_voltage: "120" | "240" | "unknown";
+  breaker_amps: number | null;
+  wire_gauge_awg: number | null;
+  gfci_status: string | null;
+  afci_status: string | null;
+  notes: string | null;
+  panel_id: string | null;
+  panel_code: string | null;
+  panel_name: string | null;
+  panel_position_id: string | null;
+  position_label: string | null;
+  terminal_side: string | null;
+  panel_position_amps: number | null;
+  panel_position_nominal_voltage: "120" | "240" | "unknown" | null;
+  point_count: number;
+  unresolved_point_count: number;
+};
+
+export type PanelPositionLookup = {
+  panel_position_id: string;
+  panel_id: string;
+  house_id: string;
+  panel_code: string;
+  panel_name: string;
+  location_notes: string | null;
+  position_label: string;
+  terminal_side: string;
+  occupied_spaces: string | null;
+  amps: number | null;
+  nominal_voltage: "120" | "240" | "unknown";
+  poles: number | null;
+  notes: string | null;
+  breaker_device_id: string | null;
+  breaker_device_label: string | null;
+  breaker_type: string | null;
+  circuit_id: string | null;
+  circuit_label: string | null;
+  circuit_verification_status: VerificationStatus | null;
+  breaker_amps: number | null;
+  wire_gauge_awg: number | null;
+  served_point_count: number;
+};
+
+export async function getCircuitSummaries() {
+  return readFromSupabase<CircuitSummary[]>("circuit_summaries", {
+    select: "*",
+    order: "circuit_label.asc",
+  });
+}
+
+export async function getCircuitSummary(circuitId: string) {
+  const rows = await readFromSupabase<CircuitSummary[]>("circuit_summaries", {
+    select: "*",
+    circuit_id: `eq.${circuitId}`,
+    limit: 1,
+  });
+
+  return rows[0] ?? null;
+}
+
+export async function getElectricalPointsForCircuit(circuitId: string) {
+  return readFromSupabase<ElectricalPointLookup[]>("electrical_point_lookup", {
+    select: "*",
+    circuit_id: `eq.${circuitId}`,
+    order: "quick_ref.asc",
+  });
+}
+
+export async function getPanelPositions(panelCode?: string) {
+  const params: Record<string, string> = {
+    select: "*",
+    order: "panel_code.asc,position_label.asc,terminal_side.asc",
+  };
+
+  if (panelCode) params.panel_code = `eq.${panelCode}`;
+
+  return readFromSupabase<PanelPositionLookup[]>("panel_position_lookup", params);
+}
+
+export async function getPanelSummary(panelCode: string) {
+  const positions = await getPanelPositions(panelCode);
+  return positions[0] ?? null;
 }

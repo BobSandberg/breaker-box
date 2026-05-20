@@ -42,6 +42,18 @@ export default function Home() {
           >
             Browse rooms
           </Link>
+          <Link
+            className="inline-flex h-11 items-center justify-center rounded-full border border-cyan-300/50 px-5 text-sm font-semibold text-cyan-100"
+            href="/circuits"
+          >
+            Browse circuits
+          </Link>
+          <Link
+            className="inline-flex h-11 items-center justify-center rounded-full border border-cyan-300/50 px-5 text-sm font-semibold text-cyan-100"
+            href="/panels"
+          >
+            Browse panels
+          </Link>
           <p className="max-w-2xl text-sm leading-6 text-slate-400">
             Advisory only. Always verify a circuit is de-energized before working
             on electrical wiring. Electricity remains committed to physics.

@@ -79,6 +79,24 @@ export default async function PointDetailPage({
               value={point.wire_gauge_awg ? `${point.wire_gauge_awg} AWG` : "Unknown"}
             />
           </dl>
+          <div className="mt-4 flex flex-wrap gap-3">
+            {point.circuit_id ? (
+              <Link
+                className="inline-flex h-10 items-center justify-center rounded-md border border-[oklch(0.72_0.018_250)] px-4 text-sm font-semibold text-[oklch(0.34_0.07_245)] transition hover:border-[oklch(0.52_0.09_245)]"
+                href={`/circuits/${point.circuit_id}`}
+              >
+                Open circuit
+              </Link>
+            ) : null}
+            {point.panel_code ? (
+              <Link
+                className="inline-flex h-10 items-center justify-center rounded-md border border-[oklch(0.72_0.018_250)] px-4 text-sm font-semibold text-[oklch(0.34_0.07_245)] transition hover:border-[oklch(0.52_0.09_245)]"
+                href={`/panels/${encodeURIComponent(point.panel_code)}`}
+              >
+                Open panel
+              </Link>
+            ) : null}
+          </div>
         </article>
 
         <aside className="border border-[oklch(0.84_0.012_250)] bg-[oklch(0.99_0.003_250)] p-5">
