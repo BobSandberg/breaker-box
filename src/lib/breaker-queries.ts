@@ -137,6 +137,34 @@ export function verificationTone(status: VerificationStatus | null) {
   return "info";
 }
 
+export type LoadWarningLevel = "unknown" | "ok" | "warning" | "critical";
+
+export function formatWatts(watts: number | null) {
+  if (watts === null) return "Unknown";
+  return `${Number(watts).toLocaleString()} W`;
+}
+
+export function loadWarningTone(level: LoadWarningLevel) {
+  if (level === "critical") return "bad";
+  if (level === "warning" || level === "unknown") return "warn";
+  return "ok";
+}
+
+export function formatLoadWarning(level: LoadWarningLevel) {
+  const labels: Record<LoadWarningLevel, string> = {
+    unknown: "Incomplete",
+    ok: "OK",
+    warning: "Warning",
+    critical: "Critical",
+  };
+
+  return labels[level];
+}
+
+export function formatLoadCategory(category: "permanent" | "current" | "possible") {
+  return category[0].toUpperCase() + category.slice(1);
+}
+
 export type CircuitSummary = {
   circuit_id: string;
   house_id: string;
@@ -224,4 +252,65 @@ export async function getPanelPositions(panelCode?: string) {
 export async function getPanelSummary(panelCode: string) {
   const positions = await getPanelPositions(panelCode);
   return positions[0] ?? null;
+}
+
+export type ElectricalPointLoad = {
+  load_assignment_id: string;
+  electrical_point_id: string;
+  quick_ref: string;
+  circuit_id: string | null;
+  load_type_id: string;
+  load_type_name: string;
+  category: "permanent" | "current" | "possible";
+  quantity: number;
+  watts_override: number | null;
+  catalog_watts: number | null;
+  volts: number | null;
+  amps: number | null;
+  effective_watts: number | null;
+  has_unknown_wattage: boolean;
+  label: string | null;
+  notes: string | null;
+};
+
+export type CircuitLoadSummary = {
+  circuit_id: string;
+  house_id: string;
+  circuit_label: string;
+  nominal_voltage: "120" | "240" | "unknown";
+  breaker_amps: number | null;
+  wire_gauge_awg: number | null;
+  permanent_known_watts: number;
+  permanent_unknown_count: number;
+  current_known_watts: number;
+  current_unknown_count: number;
+  possible_known_watts: number;
+  possible_unknown_count: number;
+  worst_case_known_watts: number;
+  worst_case_unknown_count: number;
+  breaker_limit_watts: number | null;
+  wire_limit_watts: number | null;
+  effective_limit_watts: number | null;
+  warning_level: LoadWarningLevel;
+};
+
+export async function getCircuitLoadSummary(circuitId: string) {
+  const rows = await readFromSupabase<CircuitLoadSummary[]>(
+    "circuit_load_summaries",
+    {
+      select: "*",
+      circuit_id: `eq.${circuitId}`,
+      limit: 1,
+    },
+  );
+
+  return rows[0] ?? null;
+}
+
+export async function getElectricalPointLoads(quickRef: string) {
+  return readFromSupabase<ElectricalPointLoad[]>("electrical_point_loads", {
+    select: "*",
+    quick_ref: `eq.${quickRef}`,
+    order: "category.asc,load_type_name.asc",
+  });
 }

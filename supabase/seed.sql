@@ -289,3 +289,131 @@ values
     'not_verified',
     'Sample high-load point without a mapped circuit yet.'
   );
+
+insert into public.wire_gauge_defaults (
+  id,
+  house_id,
+  wire_gauge_awg,
+  nominal_voltage,
+  advisory_limit_watts,
+  notes
+)
+values
+  (
+    '00000000-0000-4000-8000-000000000801',
+    '00000000-0000-4000-8000-000000000001',
+    14,
+    '120',
+    1800,
+    'Sample 15A branch-circuit capacity before advisory warning threshold.'
+  ),
+  (
+    '00000000-0000-4000-8000-000000000802',
+    '00000000-0000-4000-8000-000000000001',
+    12,
+    '120',
+    2400,
+    'Sample 20A branch-circuit capacity before advisory warning threshold.'
+  ),
+  (
+    '00000000-0000-4000-8000-000000000803',
+    '00000000-0000-4000-8000-000000000001',
+    10,
+    '240',
+    7200,
+    'Sample 30A 240V branch-circuit capacity before advisory warning threshold.'
+  );
+
+insert into public.load_types (
+  id,
+  house_id,
+  name,
+  watts,
+  volts,
+  amps,
+  description
+)
+values
+  (
+    '00000000-0000-4000-8000-000000000901',
+    '00000000-0000-4000-8000-000000000001',
+    'LED bulb',
+    10,
+    null,
+    null,
+    'Small installed lighting load.'
+  ),
+  (
+    '00000000-0000-4000-8000-000000000902',
+    '00000000-0000-4000-8000-000000000001',
+    'Coffee maker',
+    1200,
+    null,
+    null,
+    'Sample countertop appliance.'
+  ),
+  (
+    '00000000-0000-4000-8000-000000000903',
+    '00000000-0000-4000-8000-000000000001',
+    'Toaster',
+    900,
+    null,
+    null,
+    'Sample possible countertop load.'
+  ),
+  (
+    '00000000-0000-4000-8000-000000000904',
+    '00000000-0000-4000-8000-000000000001',
+    'Unknown countertop appliance',
+    null,
+    null,
+    null,
+    'Seeded to prove incomplete wattage warnings.'
+  );
+
+insert into public.load_assignments (
+  id,
+  electrical_point_id,
+  load_type_id,
+  category,
+  quantity,
+  label,
+  notes
+)
+values
+  (
+    '00000000-0000-4000-8000-000000001001',
+    '00000000-0000-4000-8000-000000000701',
+    '00000000-0000-4000-8000-000000000902',
+    'current',
+    1,
+    'Countertop coffee maker',
+    'Sample currently plugged-in load.'
+  ),
+  (
+    '00000000-0000-4000-8000-000000001002',
+    '00000000-0000-4000-8000-000000000702',
+    '00000000-0000-4000-8000-000000000903',
+    'possible',
+    1,
+    'Possible toaster use',
+    'Sample what-if style load.'
+  ),
+  (
+    '00000000-0000-4000-8000-000000001003',
+    '00000000-0000-4000-8000-000000000702',
+    '00000000-0000-4000-8000-000000000904',
+    'possible',
+    1,
+    'Unknown appliance',
+    'Keeps the summary visibly incomplete.'
+  ),
+  (
+    '00000000-0000-4000-8000-000000001004',
+    '00000000-0000-4000-8000-000000000703',
+    '00000000-0000-4000-8000-000000000901',
+    'permanent',
+    6,
+    'Island light fixtures',
+    'Sample installed lighting load.'
+  );

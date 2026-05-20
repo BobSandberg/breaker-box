@@ -3,8 +3,11 @@ import { notFound } from "next/navigation";
 import { StatusBadge } from "@/app/ui/status-badge";
 import {
   formatElectricalPointKind,
+  formatLoadCategory,
   formatVerificationStatus,
+  formatWatts,
   getElectricalPointByQuickRef,
+  getElectricalPointLoads,
   verificationTone,
 } from "@/lib/breaker-queries";
 
@@ -27,6 +30,7 @@ export default async function PointDetailPage({
 
   if (!point) notFound();
 
+  const loads = await getElectricalPointLoads(point.quick_ref);
   const panelPosition = point.panel_code
     ? `${point.panel_name} (${point.panel_code}), position ${point.position_label} ${point.terminal_side}`
     : "No panel position assigned";
@@ -68,36 +72,69 @@ export default async function PointDetailPage({
       </header>
 
       <section className="mx-auto grid max-w-6xl gap-5 px-5 py-8 sm:px-8 lg:grid-cols-[1.2fr_0.8fr]">
-        <article className="border border-[oklch(0.84_0.012_250)] bg-[oklch(0.99_0.003_250)] p-5">
-          <h2 className="text-xl font-semibold">Mapping</h2>
-          <dl className="mt-3">
-            <DetailItem label="Circuit" value={point.circuit_label ?? "Unassigned"} />
-            <DetailItem label="Panel position" value={panelPosition} />
-            <DetailItem label="Breaker" value={breaker} />
-            <DetailItem
-              label="Wire gauge"
-              value={point.wire_gauge_awg ? `${point.wire_gauge_awg} AWG` : "Unknown"}
-            />
-          </dl>
-          <div className="mt-4 flex flex-wrap gap-3">
-            {point.circuit_id ? (
-              <Link
-                className="inline-flex h-10 items-center justify-center rounded-md border border-[oklch(0.72_0.018_250)] px-4 text-sm font-semibold text-[oklch(0.34_0.07_245)] transition hover:border-[oklch(0.52_0.09_245)]"
-                href={`/circuits/${point.circuit_id}`}
-              >
-                Open circuit
-              </Link>
-            ) : null}
-            {point.panel_code ? (
-              <Link
-                className="inline-flex h-10 items-center justify-center rounded-md border border-[oklch(0.72_0.018_250)] px-4 text-sm font-semibold text-[oklch(0.34_0.07_245)] transition hover:border-[oklch(0.52_0.09_245)]"
-                href={`/panels/${encodeURIComponent(point.panel_code)}`}
-              >
-                Open panel
-              </Link>
-            ) : null}
-          </div>
-        </article>
+        <div className="grid gap-5">
+          <article className="border border-[oklch(0.84_0.012_250)] bg-[oklch(0.99_0.003_250)] p-5">
+            <h2 className="text-xl font-semibold">Mapping</h2>
+            <dl className="mt-3">
+              <DetailItem label="Circuit" value={point.circuit_label ?? "Unassigned"} />
+              <DetailItem label="Panel position" value={panelPosition} />
+              <DetailItem label="Breaker" value={breaker} />
+              <DetailItem
+                label="Wire gauge"
+                value={point.wire_gauge_awg ? `${point.wire_gauge_awg} AWG` : "Unknown"}
+              />
+            </dl>
+            <div className="mt-4 flex flex-wrap gap-3">
+              {point.circuit_id ? (
+                <Link
+                  className="inline-flex h-10 items-center justify-center rounded-md border border-[oklch(0.72_0.018_250)] px-4 text-sm font-semibold text-[oklch(0.34_0.07_245)] transition hover:border-[oklch(0.52_0.09_245)]"
+                  href={`/circuits/${point.circuit_id}`}
+                >
+                  Open circuit
+                </Link>
+              ) : null}
+              {point.panel_code ? (
+                <Link
+                  className="inline-flex h-10 items-center justify-center rounded-md border border-[oklch(0.72_0.018_250)] px-4 text-sm font-semibold text-[oklch(0.34_0.07_245)] transition hover:border-[oklch(0.52_0.09_245)]"
+                  href={`/panels/${encodeURIComponent(point.panel_code)}`}
+                >
+                  Open panel
+                </Link>
+              ) : null}
+            </div>
+          </article>
+
+          <article className="border border-[oklch(0.84_0.012_250)] bg-[oklch(0.99_0.003_250)] p-5">
+            <h2 className="text-xl font-semibold">Attached loads</h2>
+            <div className="mt-4 grid gap-3">
+              {loads.length > 0 ? (
+                loads.map((load) => (
+                  <div
+                    className="border border-[oklch(0.86_0.01_250)] p-4"
+                    key={load.load_assignment_id}
+                  >
+                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[oklch(0.48_0.018_250)]">
+                      {formatLoadCategory(load.category)}
+                    </p>
+                    <h3 className="mt-1 text-lg font-semibold">
+                      {load.label ?? load.load_type_name}
+                    </h3>
+                    <p className="mt-2 text-sm text-[oklch(0.46_0.018_250)]">
+                      {load.quantity} x {load.load_type_name} /{" "}
+                      {load.has_unknown_wattage
+                        ? "unknown wattage"
+                        : formatWatts(load.effective_watts)}
+                    </p>
+                  </div>
+                ))
+              ) : (
+                <p className="text-sm leading-6 text-[oklch(0.46_0.018_250)]">
+                  No loads are attached to this point yet.
+                </p>
+              )}
+            </div>
+          </article>
+        </div>
 
         <aside className="border border-[oklch(0.84_0.012_250)] bg-[oklch(0.99_0.003_250)] p-5">
           <h2 className="text-xl font-semibold">Physical lookup</h2>

@@ -3,10 +3,14 @@ import { notFound } from "next/navigation";
 import { StatusBadge } from "@/app/ui/status-badge";
 import {
   formatElectricalPointKind,
+  formatLoadWarning,
   formatTerminalSide,
   formatVerificationStatus,
+  formatWatts,
+  getCircuitLoadSummary,
   getCircuitSummary,
   getElectricalPointsForCircuit,
+  loadWarningTone,
   verificationTone,
 } from "@/lib/breaker-queries";
 
@@ -15,6 +19,26 @@ function DetailItem({ label, value }: { label: string; value: string }) {
     <div className="border-t border-[oklch(0.88_0.008_250)] py-4 first:border-t-0">
       <dt className="text-sm font-medium text-[oklch(0.48_0.018_250)]">{label}</dt>
       <dd className="mt-1 font-semibold text-[oklch(0.24_0.018_250)]">{value}</dd>
+    </div>
+  );
+}
+
+function LoadMetric({
+  label,
+  unknownCount,
+  watts,
+}: {
+  label: string;
+  unknownCount: number;
+  watts: number;
+}) {
+  return (
+    <div className="border-t border-[oklch(0.88_0.008_250)] py-4 first:border-t-0">
+      <dt className="text-sm font-medium text-[oklch(0.48_0.018_250)]">{label}</dt>
+      <dd className="mt-1 font-semibold text-[oklch(0.24_0.018_250)]">
+        {formatWatts(watts)}
+        {unknownCount > 0 ? ` + ${unknownCount} unknown` : ""}
+      </dd>
     </div>
   );
 }
@@ -30,6 +54,7 @@ export default async function CircuitDetailPage({
   if (!circuit) notFound();
 
   const points = await getElectricalPointsForCircuit(circuit.circuit_id);
+  const loadSummary = await getCircuitLoadSummary(circuit.circuit_id);
   const panelPosition = circuit.panel_code
     ? `${circuit.panel_name} (${circuit.panel_code}), position ${circuit.position_label} ${formatTerminalSide(
         circuit.terminal_side,
@@ -66,34 +91,73 @@ export default async function CircuitDetailPage({
       </header>
 
       <section className="mx-auto grid max-w-6xl gap-5 px-5 py-8 sm:px-8 lg:grid-cols-[0.85fr_1.15fr]">
-        <aside className="border border-[oklch(0.84_0.012_250)] bg-[oklch(0.99_0.003_250)] p-5">
-          <h2 className="text-xl font-semibold">Breaker mapping</h2>
-          <dl className="mt-3">
-            <DetailItem label="Panel position" value={panelPosition} />
-            <DetailItem
-              label="Breaker"
-              value={
-                circuit.breaker_amps
-                  ? `${circuit.breaker_amps}A / ${circuit.nominal_voltage}V`
-                  : `Unknown amps / ${circuit.nominal_voltage}V`
-              }
-            />
-            <DetailItem
-              label="Wire gauge"
-              value={circuit.wire_gauge_awg ? `${circuit.wire_gauge_awg} AWG` : "Unknown"}
-            />
-            <DetailItem label="GFCI" value={circuit.gfci_status ?? "Unknown"} />
-            <DetailItem label="AFCI" value={circuit.afci_status ?? "Unknown"} />
-          </dl>
-          {circuit.panel_code ? (
-            <Link
-              className="mt-4 inline-flex h-10 items-center justify-center rounded-md border border-[oklch(0.72_0.018_250)] px-4 text-sm font-semibold text-[oklch(0.34_0.07_245)] transition hover:border-[oklch(0.52_0.09_245)]"
-              href={`/panels/${encodeURIComponent(circuit.panel_code)}`}
-            >
-              Open panel
-            </Link>
+        <div className="grid gap-5">
+          <aside className="border border-[oklch(0.84_0.012_250)] bg-[oklch(0.99_0.003_250)] p-5">
+            <h2 className="text-xl font-semibold">Breaker mapping</h2>
+            <dl className="mt-3">
+              <DetailItem label="Panel position" value={panelPosition} />
+              <DetailItem
+                label="Breaker"
+                value={
+                  circuit.breaker_amps
+                    ? `${circuit.breaker_amps}A / ${circuit.nominal_voltage}V`
+                    : `Unknown amps / ${circuit.nominal_voltage}V`
+                }
+              />
+              <DetailItem
+                label="Wire gauge"
+                value={circuit.wire_gauge_awg ? `${circuit.wire_gauge_awg} AWG` : "Unknown"}
+              />
+              <DetailItem label="GFCI" value={circuit.gfci_status ?? "Unknown"} />
+              <DetailItem label="AFCI" value={circuit.afci_status ?? "Unknown"} />
+            </dl>
+            {circuit.panel_code ? (
+              <Link
+                className="mt-4 inline-flex h-10 items-center justify-center rounded-md border border-[oklch(0.72_0.018_250)] px-4 text-sm font-semibold text-[oklch(0.34_0.07_245)] transition hover:border-[oklch(0.52_0.09_245)]"
+                href={`/panels/${encodeURIComponent(circuit.panel_code)}`}
+              >
+                Open panel
+              </Link>
+            ) : null}
+          </aside>
+
+          {loadSummary ? (
+            <aside className="border border-[oklch(0.84_0.012_250)] bg-[oklch(0.99_0.003_250)] p-5">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <h2 className="text-xl font-semibold">Load summary</h2>
+                <StatusBadge tone={loadWarningTone(loadSummary.warning_level)}>
+                  {formatLoadWarning(loadSummary.warning_level)}
+                </StatusBadge>
+              </div>
+              <dl className="mt-3">
+                <LoadMetric
+                  label="Permanent"
+                  unknownCount={loadSummary.permanent_unknown_count}
+                  watts={loadSummary.permanent_known_watts}
+                />
+                <LoadMetric
+                  label="Current"
+                  unknownCount={loadSummary.current_unknown_count}
+                  watts={loadSummary.current_known_watts}
+                />
+                <LoadMetric
+                  label="Possible"
+                  unknownCount={loadSummary.possible_unknown_count}
+                  watts={loadSummary.possible_known_watts}
+                />
+                <LoadMetric
+                  label="Worst case"
+                  unknownCount={loadSummary.worst_case_unknown_count}
+                  watts={loadSummary.worst_case_known_watts}
+                />
+                <DetailItem
+                  label="Effective advisory limit"
+                  value={formatWatts(loadSummary.effective_limit_watts)}
+                />
+              </dl>
+            </aside>
           ) : null}
-        </aside>
+        </div>
 
         <article className="border border-[oklch(0.84_0.012_250)] bg-[oklch(0.99_0.003_250)] p-5">
           <h2 className="text-xl font-semibold">Served points</h2>
