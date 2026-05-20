@@ -89,6 +89,19 @@ export async function getElectricalPointsForRoom(roomCode: string) {
   });
 }
 
+export async function getElectricalPointByQuickRef(quickRef: string) {
+  const rows = await readFromSupabase<ElectricalPointLookup[]>(
+    "electrical_point_lookup",
+    {
+      select: "*",
+      quick_ref: `eq.${quickRef}`,
+      limit: 1,
+    },
+  );
+
+  return rows[0] ?? null;
+}
+
 export function formatElectricalPointKind(kind: ElectricalPointKind) {
   return kind
     .split("_")

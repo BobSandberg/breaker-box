@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { StatusBadge } from "@/app/ui/status-badge";
 import {
   formatElectricalPointKind,
   formatVerificationStatus,
@@ -7,27 +8,6 @@ import {
   getRoomSummary,
   verificationTone,
 } from "@/lib/breaker-queries";
-
-function StatusBadge({
-  tone,
-  children,
-}: {
-  tone: "ok" | "warn" | "bad" | "info";
-  children: React.ReactNode;
-}) {
-  const styles = {
-    ok: "border-[oklch(0.74_0.08_155)] bg-[oklch(0.96_0.025_155)] text-[oklch(0.34_0.08_155)]",
-    warn: "border-[oklch(0.78_0.13_78)] bg-[oklch(0.96_0.035_78)] text-[oklch(0.38_0.09_78)]",
-    bad: "border-[oklch(0.72_0.12_35)] bg-[oklch(0.96_0.03_35)] text-[oklch(0.36_0.1_35)]",
-    info: "border-[oklch(0.72_0.08_245)] bg-[oklch(0.96_0.025_245)] text-[oklch(0.34_0.08_245)]",
-  };
-
-  return (
-    <span className={`inline-flex items-center rounded-md border px-2.5 py-1 text-xs font-semibold ${styles[tone]}`}>
-      {children}
-    </span>
-  );
-}
 
 export default async function RoomDetailPage({
   params,
@@ -76,8 +56,9 @@ export default async function RoomDetailPage({
               : "No panel position";
 
             return (
-              <article
-                className="border border-[oklch(0.84_0.012_250)] bg-[oklch(0.99_0.003_250)] p-4"
+              <Link
+                className="block border border-[oklch(0.84_0.012_250)] bg-[oklch(0.99_0.003_250)] p-4 transition hover:border-[oklch(0.62_0.08_245)]"
+                href={`/points/${encodeURIComponent(point.quick_ref)}`}
                 key={point.electrical_point_id}
               >
                 <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
@@ -123,7 +104,7 @@ export default async function RoomDetailPage({
                     </dd>
                   </div>
                 </dl>
-              </article>
+              </Link>
             );
           })}
         </div>
